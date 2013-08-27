@@ -1,0 +1,16 @@
+name: VVCdB
+version: 0.1
+author: Efficient
+main: fr.vaevictis.efficient.VVCdB.VVCdB
+depend: [Factions, PvParena, VVEconomy]
+
+commands:
+  cdbjoin:
+    description: Vous fais rejoindre le lobby.
+    aliases: lobbyjoin
+  cdbleave:
+    description: Vous fais quitter le lobby.
+    aliases: lobbyleave
+  whoisinlobby:
+    description: renvoie la liste des personnes presentes dans le lobby.
+    aliases: [quiestdanslelobby, wiilobby]
