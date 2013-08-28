@@ -75,27 +75,19 @@ public class VVCdBListener implements Listener
 				Sign sign = (Sign)clickedBlock.getState();
 				if(sign.getLine(0).endsWith("Leger"))
 				{
-					if(!joueursLourd.containsKey(p))
-					{
-						joueursLeger.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
-					}
-					else
+					if(joueursLourd.containsKey(p.getName()))
 					{
 						joueursLourd.remove(p.getName());
-						joueursLeger.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
 					}
+						joueursLeger.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
 				}
 				if(sign.getLine(0).endsWith("Lourd"))
 				{
-					if(!joueursLeger.containsKey(p))
-					{
-						joueursLourd.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
-					}
-					else
+					if(joueursLeger.containsKey(p.getName()))
 					{
 						joueursLeger.remove(p.getName());
-						joueursLourd.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
 					}
+						joueursLourd.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
 				}
 				if(sign.getLine(0).endsWith("StuffBasique"))
 				{
@@ -117,18 +109,21 @@ public class VVCdBListener implements Listener
 	{
 		if(e.getArena().getName().equalsIgnoreCase("cdb"))
 		{
-			Iterator<Faction> i = Factions.i.get().iterator();
-			while(i.hasNext())
+			for(Faction f : Factions.i.get())
 			{
-				int prixLeger = 25 + (25 * this.returnNbrJoueurs(i.next().getTag(), false));
-				int prixLourd = 50 + (50 * this.returnNbrJoueurs(i.next().getTag(), true));
+				int prixLeger = 25 + (25 * this.returnNbrJoueurs(f.getTag(), false));
+				int prixLourd = 50 + (50 * this.returnNbrJoueurs(f.getTag(), true));
 				for(ArenaPlayer p : e.getArena().getFighters())
 				{
 					if(joueursLeger.containsKey(p.getName()))
 					{
-						if(joueursLeger.get(p) == i.next().getTag())
+						if(joueursLeger.get(p) == f.getTag())
 						{
-							if(!VVCdB.Payer(p, prixLeger))
+							try
+							{
+								VVCdB.Payer(p, prixLeger);
+							}
+							catch(pasAssezDAsException z)
 							{
 								e.getArena().selectClass(p, "StuffBasique");
 								Bukkit.getPlayerExact(p.getName()).sendMessage(ChatColor.RED + "Vous n'aviez pas l'argent pour disposer de la classe légère, vous avez maintenant la classe basique.");
@@ -137,12 +132,16 @@ public class VVCdBListener implements Listener
 					}
 					else if(joueursLourd.containsKey(p.getName()))
 					{
-						if(joueursLourd.get(p) == i.next().getTag())
+						if(joueursLourd.get(p) == f.getTag())
 						{
-							if(!VVCdB.Payer(p, prixLourd))
+							try
+							{
+								VVCdB.Payer(p, prixLourd);
+							}
+							catch(pasAssezDAsException z)
 							{
 								e.getArena().selectClass(p, "StuffBasique");
-								Bukkit.getPlayerExact(p.getName()).sendMessage(ChatColor.RED + "Vous n'aviez pas l'argent pour disposer de la classe lourde, vous avez maintenant la classe basique.");
+								Bukkit.getPlayerExact(p.getName()).sendMessage(ChatColor.RED + "Vous n'aviez pas l'argent pour disposer de la classe légère, vous avez maintenant la classe basique.");
 							}
 						}
 					}

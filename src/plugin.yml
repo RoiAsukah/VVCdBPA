@@ -2,7 +2,7 @@ name: VVCdB
 version: 0.1
 author: Efficient
 main: fr.vaevictis.efficient.VVCdB.VVCdB
-depend: [Factions, PvParena, VVEconomy]
+depend: [Factions, pvparena, VVEconomy]
 
 commands:
   cdbjoin:

@@ -51,26 +51,25 @@ public class VVCdB extends JavaPlugin{
 		logger.info("VVCdB est déchargé");
 	}
 	
-	public static boolean Payer(ArenaPlayer p, int prix)
+	public static void Payer(ArenaPlayer p, int prix) throws pasAssezDAsException
 	{
 		if(Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().get("argent." + p.getName()) == null)
 		{
 			Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().set("argent." + p.getName(), 0);
 			Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").saveConfig();
-			return false;
 		}
-		else if (Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().getInt("argent." + p.getName()) >= prix)
+		
+		if (Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().getInt("argent." + p.getName()) >= prix)
 		{
 			int argentJoueurActuel = Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().getInt("argent." + p.getName());
 			Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().set("argent." + p.getName(), argentJoueurActuel - prix);
 			int argentBanqueActuel = Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().getInt("argentBanque");
 			Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().set("argentBanque", argentBanqueActuel + prix);
 			Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").saveConfig();
-			return true;
 		}
-		else
+		else if (Bukkit.getServer().getPluginManager().getPlugin("VVEconomy").getConfig().getInt("argent." + p.getName()) < prix)
 		{
-			return false;
+			throw new pasAssezDAsException();
 		}
 	}
 	
@@ -97,7 +96,10 @@ public class VVCdB extends JavaPlugin{
 				s = s + f.getTag() + ", ";
 			}
 		}
-		s.substring(0, s.lastIndexOf(","));
+		if(s.length() >= 2)
+		{
+			s.substring(0, s.length() - 2);
+		}
 		return s;
 	}
 	
@@ -112,7 +114,10 @@ public class VVCdB extends JavaPlugin{
 				s = s + p.getName() + ", ";
 			}
 		}
-		s.substring(0, s.lastIndexOf(","));
+		if(s.length() >= 2)
+		{
+			s.substring(0, s.length() - 2);
+		}
 		return s;
 	}
 	
@@ -129,6 +134,7 @@ public class VVCdB extends JavaPlugin{
 				{
 					if(!Lobby.get(fp.getFaction()).contains(p))
 					{
+						p.sendMessage(ChatColor.AQUA + "Vous êtes entrés dans le Lobby.");
 						p.sendMessage(ChatColor.AQUA + "Les joueurs actuellement dans le lobby sont : " + chaineJoueursDansLobby());
 						Lobby.get(fp.getFaction()).add(p);
 						if(getNbreFactionsLobby() >= 3)
@@ -149,6 +155,8 @@ public class VVCdB extends JavaPlugin{
 				}
 				else
 				{
+					p.sendMessage(ChatColor.AQUA + "Vous êtes entrés dans le Lobby.");
+					p.sendMessage(ChatColor.AQUA + "Les joueurs actuellement dans le lobby sont : " + chaineJoueursDansLobby());
 					ssListeLobby = new ArrayList<Player>();
 					ssListeLobby.add(p);
 					Lobby.put(fp.getFaction(), ssListeLobby);
@@ -178,14 +186,19 @@ public class VVCdB extends JavaPlugin{
 				{
 					if(Lobby.get(fp.getFaction()).contains(p))
 					{
+						p.sendMessage(ChatColor.AQUA + "Vous avez quitté le Lobby");
 						Lobby.get(fp.getFaction()).remove(p);
-						if(getNbreFactionsLobby() < 3)
+						if(Lobby.get(fp.getFaction()).isEmpty())
 						{
-							if(LauchingTaskRunning)
+							Lobby.remove(fp.getFaction());
+							if(getNbreFactionsLobby() < 3)
 							{
-								LauchingTaskRunning = false;
-								Bukkit.getServer().getScheduler().cancelTask(taskid);
-								Bukkit.getServer().broadcastMessage(ChatColor.DARK_RED + "Le lancement du champ de bataille est annulé car " + p.getName() + "a quitté le lobby");
+								if(LauchingTaskRunning)
+								{
+									LauchingTaskRunning = false;
+									Bukkit.getServer().getScheduler().cancelTask(taskid);
+									Bukkit.getServer().broadcastMessage(ChatColor.DARK_RED + "Le lancement du champ de bataille est annulé car " + p.getName() + " a quitté le lobby");
+								}
 							}
 						}
 					}
@@ -213,4 +226,9 @@ public class VVCdB extends JavaPlugin{
 		return false;
 	}
 	
+}
+
+class pasAssezDAsException extends Exception{
+	public pasAssezDAsException(){
+	}
 }
