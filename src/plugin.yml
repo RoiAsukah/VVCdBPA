@@ -1,5 +1,5 @@
 name: VVCdB
-version: 0.1
+version: 1.0
 author: Efficient
 main: fr.vaevictis.efficient.VVCdB.VVCdB
 depend: [Factions, pvparena, VVEconomy]
@@ -8,9 +8,24 @@ commands:
   cdbjoin:
     description: Vous fais rejoindre le lobby.
     aliases: lobbyjoin
+    permission: vvcdb.basic
+    permission-message: Vous n'avez pas la permission de faire ceci.
   cdbleave:
     description: Vous fais quitter le lobby.
     aliases: lobbyleave
+    permission: vvcdb.basic
+    permission-message: Vous n'avez pas la permission de faire ceci.
   whoisinlobby:
     description: renvoie la liste des personnes presentes dans le lobby.
     aliases: [quiestdanslelobby, wiilobby]
+    permission: vvcdb.basic
+    permission-message: Vous n'avez pas la permission de faire ceci.
+  scoreboard:
+    description: renvoie le tableau des scores de la saison courante.
+    permission: vvcdb.basic
+    permission-message: Vous n'avez pas la permission de faire ceci.
+  resetsaison:
+    description: remet les points a zero pour relancer une saison de champs de bataille.
+    permission: vvcdb.admin
+    permission-message: Vous n'avez pas la permission de faire ceci.
+    

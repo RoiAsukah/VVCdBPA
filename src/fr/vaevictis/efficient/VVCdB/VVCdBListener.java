@@ -1,7 +1,6 @@
 package fr.vaevictis.efficient.VVCdB;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 import net.slipcor.pvparena.arena.ArenaPlayer;
 
@@ -60,10 +59,62 @@ public class VVCdBListener implements Listener
 		return i;
 	}
 	
+	public void pointsManager(Faction winner)
+	{
+		boolean plusNombreux = false, moinsNombreux = false, egaux = false;
+		HashMap<Faction, Integer> resultats = new HashMap<Faction, Integer>();
+		for(Faction MapKey : VVCdB.Lobby.keySet())
+		{
+			resultats.put(MapKey, 1);
+			if(MapKey == winner)
+			{
+				for(Faction key : VVCdB.Lobby.keySet())
+				{
+					if(VVCdB.Lobby.get(winner).size() < VVCdB.Lobby.get(key).size())
+					{
+						moinsNombreux = true;
+					}
+					else if(VVCdB.Lobby.get(winner).size() > VVCdB.Lobby.get(key).size())
+					{
+						plusNombreux = true;
+					}
+					else if(VVCdB.Lobby.get(winner).size() == VVCdB.Lobby.get(key).size())
+					{
+						egaux = true;
+					}
+				}
+				if(moinsNombreux)
+				{
+					resultats.remove(winner);
+					resultats.put(winner, 5);
+					plusNombreux = false;
+					egaux = false;
+				}
+				if(egaux)
+				{
+					resultats.remove(winner);
+					resultats.put(winner, 3);
+					plusNombreux = false;
+				}
+				if(plusNombreux)
+				{
+					resultats.remove(winner);
+					resultats.put(winner, 2);
+				}
+			}
+			
+		}
+		for(Faction MapKey : resultats.keySet())
+		{
+			VVCdB.ajouterPoints(MapKey, resultats.get(MapKey).intValue());
+		}
+	}
+	
+	private boolean WinHasBeenCalled = false;
 	public static HashMap<String, String> joueursLeger = new HashMap<String, String>();
 	public static HashMap<String, String> joueursLourd = new HashMap<String, String>();
 	
-	@EventHandler(priority = EventPriority.NORMAL)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerBuysStuff (PlayerInteractEvent e)
 	{
 		Player p = e.getPlayer();
@@ -75,19 +126,35 @@ public class VVCdBListener implements Listener
 				Sign sign = (Sign)clickedBlock.getState();
 				if(sign.getLine(0).endsWith("Leger"))
 				{
-					if(joueursLourd.containsKey(p.getName()))
+					if(VVCdB.peuPayer(p, 50))
 					{
-						joueursLourd.remove(p.getName());
+						if(joueursLourd.containsKey(p.getName()))
+						{
+							joueursLourd.remove(p.getName());
+						}
+							joueursLeger.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
 					}
-						joueursLeger.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
+					else
+					{
+						p.sendMessage(ChatColor.RED + "Vous n'avez pas l'argent pour disposer de cette classe (50As)");
+						e.setCancelled(true);
+					}
 				}
 				if(sign.getLine(0).endsWith("Lourd"))
 				{
-					if(joueursLeger.containsKey(p.getName()))
+					if(VVCdB.peuPayer(p, 100))
 					{
-						joueursLeger.remove(p.getName());
+						if(joueursLeger.containsKey(p.getName()))
+						{
+							joueursLeger.remove(p.getName());
+						}
+							joueursLourd.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
 					}
-						joueursLourd.put(p.getName(), FPlayers.i.get(p).getFaction().getTag());
+					else
+					{
+						p.sendMessage(ChatColor.RED + "Vous n'avez pas l'argent pour disposer de cette classe (100As)");
+						e.setCancelled(true);
+					}
 				}
 				if(sign.getLine(0).endsWith("StuffBasique"))
 				{
@@ -111,13 +178,13 @@ public class VVCdBListener implements Listener
 		{
 			for(Faction f : Factions.i.get())
 			{
-				int prixLeger = 25 + (25 * this.returnNbrJoueurs(f.getTag(), false));
-				int prixLourd = 50 + (50 * this.returnNbrJoueurs(f.getTag(), true));
+				int prixLeger = 50;
+				int prixLourd = 100;
 				for(ArenaPlayer p : e.getArena().getFighters())
 				{
 					if(joueursLeger.containsKey(p.getName()))
 					{
-						if(joueursLeger.get(p) == f.getTag())
+						if(joueursLeger.get(p.getName()) == f.getTag())
 						{
 							try
 							{
@@ -125,14 +192,15 @@ public class VVCdBListener implements Listener
 							}
 							catch(pasAssezDAsException z)
 							{
-								e.getArena().selectClass(p, "StuffBasique");
-								Bukkit.getPlayerExact(p.getName()).sendMessage(ChatColor.RED + "Vous n'aviez pas l'argent pour disposer de la classe légère, vous avez maintenant la classe basique.");
+								//Bukkit.getPlayerExact(p.getName()).performCommand("pa CdB class load St");
+								//e.getArena().selectClass(p, "StuffBasique");
+								Bukkit.getPlayerExact(p.getName()).sendMessage(ChatColor.RED + "Vous n'aviez pas l'argent pour disposer de la classe légère, contactez le staff si vous obtenez ce message.");
 							}
 						}
 					}
 					else if(joueursLourd.containsKey(p.getName()))
 					{
-						if(joueursLourd.get(p) == f.getTag())
+						if(joueursLourd.get(p.getName()) == f.getTag())
 						{
 							try
 							{
@@ -140,8 +208,9 @@ public class VVCdBListener implements Listener
 							}
 							catch(pasAssezDAsException z)
 							{
-								e.getArena().selectClass(p, "StuffBasique");
-								Bukkit.getPlayerExact(p.getName()).sendMessage(ChatColor.RED + "Vous n'aviez pas l'argent pour disposer de la classe légère, vous avez maintenant la classe basique.");
+//								Bukkit.getPlayerExact(p.getName()).performCommand("pa CdB class load CombattantAlpha");
+								//e.getArena().selectClass(p, "StuffBasique");
+								Bukkit.getPlayerExact(p.getName()).sendMessage(ChatColor.RED + "Vous n'aviez pas l'argent pour disposer de la classe lourde, contactez le staff si vous obtenez ce message.");
 							}
 						}
 					}
@@ -157,11 +226,10 @@ public class VVCdBListener implements Listener
 		{
 			joueursLeger.clear();
 			joueursLourd.clear();
-			//TODO gestion des points
 			VVCdB.peuEntrerLobby = true;
 			VVCdB.peuQuitterLobby = true;
 			VVCdB.Lobby.clear();
-		}
+		}	
 	}
 	
 	@EventHandler(priority = EventPriority.LOW)
@@ -174,6 +242,24 @@ public class VVCdBListener implements Listener
 			if(VVCdB.Lobby.get(fp.getFaction()).contains(p))
 			{
 				p.performCommand("cdbleave");
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void PAWinEvent(net.slipcor.pvparena.events.PAWinEvent e)
+	{
+		Player p = e.getPlayer();
+		FPlayer fp = FPlayers.i.get(p);
+		if(e.getArena().getName().equalsIgnoreCase("cdb"))
+		{
+			if(!WinHasBeenCalled)
+			{
+				this.pointsManager(fp.getFaction());
+				WinHasBeenCalled = true;
+				VVCdB.peuEntrerLobby = true;
+				VVCdB.peuQuitterLobby = true;
+				VVCdB.Lobby.clear();
 			}
 		}
 	}
